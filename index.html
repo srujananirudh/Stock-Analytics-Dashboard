@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Stock Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap');
+
+  .dash-root {
+    background: #0b0e14;
+    color: #c8d0e0;
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    padding: 0;
+    margin: 0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: #0d1117;
+    border-right: 1px solid #1e2433;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .sidebar-logo {
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid #1e2433;
+  }
+
+  .sidebar-logo .brand {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4f9fff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-logo .brand-sub {
+    font-size: 10px;
+    color: #3d4a62;
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .sidebar-section {
+    padding: 18px 14px 10px;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: #3d4a62;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .sidebar select {
+    width: 100%;
+    background: #131920;
+    border: 1px solid #1e2433;
+    border-radius: 6px;
+    color: #8ea4c8;
+    font-size: 12px;
+    font-family: 'Syne', sans-serif;
+    padding: 8px 10px;
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+
+  .sidebar select:focus {
+    border-color: #4f9fff44;
+  }
+
+  .sidebar-nav {
+    padding: 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav-item {
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #4a5a76;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .nav-item.active, .nav-item:hover {
+    background: #1a2235;
+    color: #8ea4c8;
+  }
+
+  .nav-item.active { color: #4f9fff; }
+
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .sidebar-insight {
+    margin: auto 14px 16px;
+    background: #0f1a2e;
+    border: 1px solid #1e3050;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .insight-tag {
+    font-size: 9px;
+    color: #2aaa6e;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+
+  .insight-text {
+    font-size: 11px;
+    color: #6a8ab0;
+    line-height: 1.5;
+  }
+
+  .insight-text .pos { color: #2aaa6e; font-weight: 500; }
+  .insight-text .neg { color: #e05555; font-weight: 500; }
+
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    background: #0b0e14;
+  }
+
+  .top-bar {
+    padding: 16px 24px;
+    border-bottom: 1px solid #1e2433;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0d1117;
+  }
+
+  .top-bar h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e2e8f4;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .top-bar .sub {
+    font-size: 11px;
+    color: #3d4a62;
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ticker-badge {
+    background: #131920;
+    border: 1px solid #1e2433;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #8ea4c8;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #2aaa6e;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .content-pad {
+    padding: 20px 24px;
+  }
+
+  .company-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    background: #0d1117;
+    border: 1px solid #1e2433;
+    border-radius: 10px;
+  }
+
+  .company-logo-circle {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1a3a6e, #2a5cb8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #7eb8ff;
+    letter-spacing: 0.05em;
+  }
+
+  .company-info h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #c8d8f0;
+    margin: 0;
+  }
+
+  .company-info .sector {
+    font-size: 11px;
+    color: #3d4a62;
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .company-meta {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .meta-item { color: #4a5a76; }
+  .meta-item span { color: #8ea4c8; margin-left: 4px; }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .metric-card {
+    background: #0d1117;
+    border: 1px solid #1e2433;
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    border-radius: 10px 0 0 10px;
+  }
+
+  .metric-card.blue::after { background: #4f9fff; }
+  .metric-card.green::after { background: #2aaa6e; }
+  .metric-card.amber::after { background: #e8a838; }
+  .metric-card.coral::after { background: #e05555; }
+
+  .metric-icon {
+    font-size: 11px;
+    color: #3d4a62;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .metric-icon svg {
+    width: 14px; height: 14px;
+    opacity: 0.4;
+  }
+
+  .metric-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e2e8f4;
+    letter-spacing: -0.01em;
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .metric-change {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pos { color: #2aaa6e; }
+  .neg { color: #e05555; }
+
+  .metric-sub {
+    font-size: 10px;
+    color: #3d4a62;
+    margin-left: 4px;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .chart-card {
+    background: #0d1117;
+    border: 1px solid #1e2433;
+    border-radius: 10px;
+    padding: 18px;
+  }
+
+  .chart-card.wide {
+    grid-column: span 2;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .chart-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #8ea4c8;
+    letter-spacing: 0.04em;
+  }
+
+  .chart-title-sub {
+    font-size: 10px;
+    color: #3d4a62;
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .chart-badge {
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #131920;
+    border: 1px solid #1e2433;
+    color: #4a5a76;
+    letter-spacing: 0.06em;
+  }
+
+  .custom-legend {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: #4a5a76;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .legend-swatch {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  .table-section {
+    background: #0d1117;
+    border: 1px solid #1e2433;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .table-section-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid #1e2433;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table-section-header .t-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #8ea4c8;
+    letter-spacing: 0.04em;
+  }
+
+  .sort-btn {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #3d4a62;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #1e2433;
+    background: transparent;
+    transition: all 0.15s;
+  }
+
+  .sort-btn:hover { color: #8ea4c8; border-color: #2e3d58; background: #131920; }
+  .sort-btn.active { color: #4f9fff; border-color: #4f9fff44; }
+
+  .data-table-wrap {
+    overflow-x: auto;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .data-table th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3d4a62;
+    font-weight: 500;
+    border-bottom: 1px solid #1e2433;
+    background: #0b0e14;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    cursor: pointer;
+    user-select: none;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .data-table th:hover { color: #8ea4c8; }
+
+  .data-table td {
+    padding: 9px 14px;
+    color: #8ea4c8;
+    border-bottom: 1px solid #0f1520;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+
+  .data-table tr:hover td { background: #111825; }
+
+  .data-table td.company-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    color: #c8d8f0;
+  }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    background: #131920;
+    border: 1px solid #1e2433;
+    color: #4a5a76;
+  }
+
+  .rank-badge.top { background: #0f1a2e; border-color: #1e3050; color: #4f9fff; }
+
+  .section-divider {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #3d4a62;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1e2433;
+  }
+
+  /* Loading state */
+  .loading-msg {
+    font-size: 11px;
+    color: #4a5a76;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 8px 10px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+
+<div class="dash-root">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">FinAnalytics</div>
+      <div class="brand-sub">MARKET INTELLIGENCE v2.6</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Company Filter</div>
+      <!-- Populated dynamically from API -->
+      <select id="companySelect" onchange="updateDashboard()">
+        <option value="">Loading...</option>
+      </select>
+
+      <div class="sidebar-label">Year Range</div>
+      <select id="yearRange" onchange="updateDashboard()">
+        <option value="5">Last 5 Years</option>
+        <option value="3">Last 3 Years</option>
+        <option value="7">Last 7 Years</option>
+      </select>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-label" style="padding: 0 4px;">Navigation</div>
+      <div class="nav-item active"><span class="nav-dot"></span>Overview</div>
+      <div class="nav-item"><span class="nav-dot"></span>Financials</div>
+      <div class="nav-item"><span class="nav-dot"></span>Comparison</div>
+      <div class="nav-item"><span class="nav-dot"></span>Reports</div>
+    </div>
+
+    <div class="sidebar-insight">
+      <div class="insight-tag">AI Insight</div>
+      <div class="insight-text" id="aiInsight">
+        Loading company data...
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div>
+        <h1>Stock Intelligence Dashboard</h1>
+        <div class="sub">Real-time Financial Insights</div>
+      </div>
+      <div class="top-bar-right">
+        <div class="ticker-badge"><span class="live-dot"></span>LIVE</div>
+        <div class="ticker-badge">NSE/BSE · May 2026</div>
+      </div>
+    </div>
+
+    <div class="content-pad">
+
+      <div class="company-header" id="companyHeader">
+        <div class="company-logo-circle" id="companyLogo">--</div>
+        <div class="company-info">
+          <h2 id="companyName">Loading...</h2>
+          <div class="sector" id="companySector">Fetching data from API...</div>
+        </div>
+        <div class="company-meta">
+          <div class="meta-item">Year<span id="latestYear">—</span></div>
+          <div class="meta-item">ID<span id="companyId">—</span></div>
+        </div>
+      </div>
+
+      <div class="section-divider">Key Metrics</div>
+
+      <div class="metrics-row">
+        <div class="metric-card blue">
+          <div class="metric-icon">EPS
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="metric-value" id="epsVal">—</div>
+          <div class="metric-change"><span class="metric-sub" id="epsYear">Earnings Per Share</span></div>
+        </div>
+        <div class="metric-card green">
+          <div class="metric-icon">Net Profit
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 12 L7 7 L10 10 L13 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="metric-value" id="profitVal">—</div>
+          <div class="metric-change"><span class="metric-sub" id="profitYear">Net Profit (Cr)</span></div>
+        </div>
+        <div class="metric-card amber">
+          <div class="metric-icon">Sales Revenue
+            <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="8" width="3" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="5" width="3" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="2" width="3" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <div class="metric-value" id="revenueVal">—</div>
+          <div class="metric-change"><span class="metric-sub" id="revenueYear">Total Sales (Cr)</span></div>
+        </div>
+        <div class="metric-card coral">
+          <div class="metric-icon">OPM Margin
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="metric-value" id="marginVal">—</div>
+          <div class="metric-change"><span class="metric-sub" id="marginYear">Operating Margin %</span></div>
+        </div>
+      </div>
+
+      <div class="section-divider">Analytics</div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">EPS Trend</div>
+              <div class="chart-title-sub">Earnings Per Share · Annual</div>
+            </div>
+            <div class="chart-badge">LINE</div>
+          </div>
+          <div class="custom-legend">
+            <div class="legend-item"><div class="legend-swatch" style="background:#4f9fff;"></div>EPS</div>
+          </div>
+          <div style="position:relative;width:100%;height:200px;">
+            <canvas id="epsChart" role="img" aria-label="EPS trend line chart over years">EPS trend data</canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Sales vs Net Profit</div>
+              <div class="chart-title-sub">Annual Comparison · ₹ Crores</div>
+            </div>
+            <div class="chart-badge">BAR</div>
+          </div>
+          <div class="custom-legend">
+            <div class="legend-item"><div class="legend-swatch" style="background:#4f9fff;"></div>Revenue</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#2aaa6e;"></div>Net Profit</div>
+          </div>
+          <div style="position:relative;width:100%;height:200px;">
+            <canvas id="salesProfitChart" role="img" aria-label="Bar chart comparing sales vs net profit">Sales vs Profit</canvas>
+          </div>
+        </div>
+
+        <div class="chart-card wide">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Top 10 Companies by Net Profit</div>
+              <div class="chart-title-sub" id="topChartSub">Latest Year · ₹ Crores</div>
+            </div>
+            <div class="chart-badge">BAR</div>
+          </div>
+          <div class="custom-legend">
+            <div class="legend-item"><div class="legend-swatch" style="background:#4f9fff;"></div>Net Profit</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#e8a838;"></div>Selected</div>
+          </div>
+          <div style="position:relative;width:100%;height:220px;">
+            <canvas id="topCompChart" role="img" aria-label="Top 10 companies by net profit bar chart">Top 10 companies profit</canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider">Company Data</div>
+
+      <div class="table-section">
+        <div class="table-section-header">
+          <div class="t-title">Detailed Financial Records</div>
+          <div style="display:flex;gap:6px;">
+            <button class="sort-btn active" id="sortProfitBtn" onclick="sortTable('profit')">Sort: Profit</button>
+            <button class="sort-btn" id="sortRevenueBtn" onclick="sortTable('revenue')">Revenue</button>
+            <button class="sort-btn" id="sortEpsBtn" onclick="sortTable('eps')">EPS</button>
+          </div>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table" id="dataTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Company</th>
+                <th>ID</th>
+                <th>Revenue (Cr)</th>
+                <th>Net Profit (Cr)</th>
+                <th>EPS (₹)</th>
+                <th>OPM %</th>
+                <th>Year</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="8" style="text-align:center;color:#3d4a62;padding:20px;">Loading data from API...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<script>
+console.log("JS RUNNING 🚀");
+
+// ─── Global State ───────────────────────────────────────────────────────────
+let allData      = [];   // raw records from API
+let companies    = {};   // { companyName: [ ...sorted records ] }
+let companyNames = [];   // ordered list of company names for dropdown
+let epsChartInst = null;
+let spChartInst  = null;
+let topChartInst = null;
+let currentSort  = 'profit';
+
+// ─── Chart.js Defaults ──────────────────────────────────────────────────────
+Chart.defaults.color          = '#4a5a76';
+Chart.defaults.borderColor    = '#1e2433';
+Chart.defaults.font.family    = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size      = 10;
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Extract a sortable numeric year from a year_y field.
+ * Handles "FY2024", "2023-24", "2024", "Mar 2024", etc.
+ */
+function extractYear(yearStr) {
+  if (!yearStr) return 0;
+  const s = String(yearStr);
+  // Prefer the last 4-digit sequence (covers "2023-24" → 2024, "FY2024" → 2024)
+  const m4 = s.match(/\d{4}/g);
+  if (m4) return parseInt(m4[m4[4] ? m4.length - 1 : m4.length - 1], 10);
+  // Fallback: any digits
+  const mn = s.match(/\d+/);
+  return mn ? parseInt(mn[0], 10) : 0;
+}
+
+function fmtNum(val) {
+  if (val === null || val === undefined || val === '') return '—';
+  const n = parseFloat(val);
+  if (isNaN(n)) return String(val);
+  if (Math.abs(n) >= 1e5) return (n / 1e5).toFixed(2) + 'L';
+  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toFixed(2);
+}
+
+function getAbbr(name) {
+  if (!name) return '??';
+  return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 3);
+}
+
+// ─── Fetch & Bootstrap ──────────────────────────────────────────────────────
+fetch("http://localhost:8000/data")
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    return res.json();
+  })
+  .then(data => {
+
+    console.log("API DATA:", data);
+
+    if (!Array.isArray(data) || data.length === 0) {
+      console.warn("API returned empty or non-array data.");
+      document.getElementById('aiInsight').innerHTML = 'No data returned from API.';
+      return;
+    }
+
+    allData = data;
+
+    // Group records by company_name
+    const grouped = {};
+    data.forEach(item => {
+      const key = item.company_name || 'Unknown';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(item);
+    });
+
+    // Sort each company's records by extracted year (ascending → latest last)
+    Object.keys(grouped).forEach(name => {
+      grouped[name].sort((a, b) => extractYear(a.year_y) - extractYear(b.year_y));
+    });
+
+    companies    = grouped;
+    companyNames = Object.keys(grouped).sort();
+
+    console.log("COMPANIES:", companyNames);
+
+    // Populate dropdown
+    const select = document.getElementById("companySelect");
+    select.innerHTML = "";
+    companyNames.forEach((name, i) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+
+    // Render dashboard for first company
+    updateDashboard();
+    renderTopCompaniesChart();
+    renderTableAll(currentSort);
+  })
+  .catch(err => {
+    console.error("API ERROR:", err);
+    document.getElementById('companyName').textContent  = 'API Error';
+    document.getElementById('companySector').textContent = err.message;
+    document.getElementById('aiInsight').innerHTML       = '<span class="neg">Failed to load API data.</span> Check that FastAPI is running on <code>http://localhost:8000</code>.';
+    document.getElementById('tableBody').innerHTML       = `<tr><td colspan="8" style="text-align:center;color:#e05555;padding:20px;">⚠ ${err.message}</td></tr>`;
+  });
+
+// ─── Main Dashboard Update ──────────────────────────────────────────────────
+function updateDashboard() {
+  const selectedName = document.getElementById("companySelect").value;
+  if (!selectedName || !companies[selectedName]) return;
+
+  const records = companies[selectedName];
+  const latest  = records[records.length - 1];
+
+  // Header
+  document.getElementById('companyLogo').textContent   = getAbbr(latest.company_name);
+  document.getElementById('companyName').textContent   = latest.company_name || '—';
+  document.getElementById('companySector').textContent = `ID: ${latest.company_id || '—'} · Year: ${latest.year_y || '—'}`;
+  document.getElementById('latestYear').textContent    = latest.year_y  || '—';
+  document.getElementById('companyId').textContent     = latest.company_id || '—';
+
+  // Metric cards
+  document.getElementById('epsVal').textContent     = '₹' + fmtNum(latest.eps);
+  document.getElementById('profitVal').textContent  = '₹' + fmtNum(latest.net_profit) + ' Cr';
+  document.getElementById('revenueVal').textContent = '₹' + fmtNum(latest.sales)      + ' Cr';
+  document.getElementById('marginVal').textContent  = (latest.opm_percentage !== null && latest.opm_percentage !== undefined)
+                                                        ? parseFloat(latest.opm_percentage).toFixed(2) + '%'
+                                                        : '—';
+
+  // Year labels under metrics
+  document.getElementById('epsYear').textContent     = 'Year: ' + (latest.year_y || '—');
+  document.getElementById('profitYear').textContent  = 'Year: ' + (latest.year_y || '—');
+  document.getElementById('revenueYear').textContent = 'Year: ' + (latest.year_y || '—');
+  document.getElementById('marginYear').textContent  = 'Year: ' + (latest.year_y || '—');
+
+  // AI Insight panel
+  document.getElementById('aiInsight').innerHTML =
+    `Latest: <span class="pos">${latest.year_y || '—'}</span>. ` +
+    `EPS <span class="pos">₹${fmtNum(latest.eps)}</span>. ` +
+    `Net Profit <span class="pos">₹${fmtNum(latest.net_profit)} Cr</span>.`;
+
+  // Charts
+  renderEpsChart(records, selectedName);
+  renderSalesProfitChart(records, selectedName);
+
+  // Highlight selected company in top-10 chart
+  renderTopCompaniesChart(selectedName);
+}
+
+// ─── EPS Trend Chart ────────────────────────────────────────────────────────
+function renderEpsChart(records, label) {
+  const labels = records.map(r => r.year_y || '—');
+  const values = records.map(r => parseFloat(r.eps) || 0);
+
+  if (epsChartInst) { epsChartInst.destroy(); epsChartInst = null; }
+
+  const ctx = document.getElementById('epsChart').getContext('2d');
+  epsChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'EPS',
+        data: values,
+        borderColor: '#4f9fff',
+        backgroundColor: 'rgba(79,159,255,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#4f9fff',
+        pointRadius: 3,
+        tension: 0.35,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e2433' }, ticks: { maxRotation: 45 } },
+        y: { grid: { color: '#1e2433' } }
+      }
+    }
+  });
+}
+
+// ─── Sales vs Profit Chart ──────────────────────────────────────────────────
+function renderSalesProfitChart(records, label) {
+  const labels  = records.map(r => r.year_y || '—');
+  const sales   = records.map(r => parseFloat(r.sales)      || 0);
+  const profits = records.map(r => parseFloat(r.net_profit) || 0);
+
+  if (spChartInst) { spChartInst.destroy(); spChartInst = null; }
+
+  const ctx = document.getElementById('salesProfitChart').getContext('2d');
+  spChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Revenue',
+          data: sales,
+          backgroundColor: 'rgba(79,159,255,0.7)',
+          borderRadius: 3,
+        },
+        {
+          label: 'Net Profit',
+          data: profits,
+          backgroundColor: 'rgba(42,170,110,0.7)',
+          borderRadius: 3,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e2433' }, ticks: { maxRotation: 45 } },
+        y: { grid: { color: '#1e2433' } }
+      }
+    }
+  });
+}
+
+// ─── Top 10 Companies Chart ─────────────────────────────────────────────────
+function renderTopCompaniesChart(highlightName) {
+  // Use latest record per company
+  const latestPerCompany = companyNames.map(name => {
+    const recs   = companies[name];
+    const latest = recs[recs.length - 1];
+    return {
+      name,
+      profit: parseFloat(latest.net_profit) || 0,
+    };
+  });
+
+  // Sort by profit descending and take top 10
+  const top10 = latestPerCompany
+    .sort((a, b) => b.profit - a.profit)
+    .slice(0, 10);
+
+  const labels = top10.map(c => c.name.length > 14 ? c.name.slice(0, 14) + '…' : c.name);
+  const values = top10.map(c => c.profit);
+  const colors = top10.map(c => c.name === highlightName ? '#e8a838' : 'rgba(79,159,255,0.7)');
+
+  // Update subtitle
+  document.getElementById('topChartSub').textContent = 'Latest Year · ₹ Crores';
+
+  if (topChartInst) { topChartInst.destroy(); topChartInst = null; }
+
+  const ctx = document.getElementById('topCompChart').getContext('2d');
+  topChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Net Profit',
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e2433' }, ticks: { maxRotation: 45 } },
+        y: { grid: { color: '#1e2433' } }
+      }
+    }
+  });
+}
+
+// ─── Table (All Companies, Latest Year) ─────────────────────────────────────
+function renderTableAll(sortKey) {
+  // Build one row per company (latest record)
+  let rows = companyNames.map((name, i) => {
+    const recs   = companies[name];
+    const latest = recs[recs.length - 1];
+    return {
+      rank:    i + 1,
+      name:    latest.company_name || '—',
+      id:      latest.company_id   || '—',
+      revenue: parseFloat(latest.sales)          || 0,
+      profit:  parseFloat(latest.net_profit)     || 0,
+      eps:     parseFloat(latest.eps)            || 0,
+      margin:  parseFloat(latest.opm_percentage) || 0,
+      year:    latest.year_y || '—',
+    };
+  });
+
+  // Sort
+  if (sortKey === 'profit')  rows.sort((a, b) => b.profit  - a.profit);
+  if (sortKey === 'revenue') rows.sort((a, b) => b.revenue - a.revenue);
+  if (sortKey === 'eps')     rows.sort((a, b) => b.eps     - a.eps);
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td><span class="rank-badge ${i < 3 ? 'top' : ''}">${i + 1}</span></td>
+      <td class="company-name">${r.name}</td>
+      <td>${r.id}</td>
+      <td>${fmtNum(r.revenue)}</td>
+      <td>${fmtNum(r.profit)}</td>
+      <td>${fmtNum(r.eps)}</td>
+      <td>${r.margin.toFixed(2)}%</td>
+      <td>${r.year}</td>
+    </tr>
+  `).join('');
+}
+
+function sortTable(key) {
+  currentSort = key;
+  // Toggle active button style
+  ['sortProfitBtn', 'sortRevenueBtn', 'sortEpsBtn'].forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+  const map = { profit: 'sortProfitBtn', revenue: 'sortRevenueBtn', eps: 'sortEpsBtn' };
+  if (map[key]) document.getElementById(map[key]).classList.add('active');
+
+  renderTableAll(key);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pandas
+fastapi
+uvicorn
+pandas
+numpy
+matplotlib
+seaborn
+streamlit
